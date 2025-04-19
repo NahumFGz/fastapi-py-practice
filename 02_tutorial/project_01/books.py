@@ -1,6 +1,5 @@
-from operator import le
-
-from fastapi import FastAPI, HTTPException, status
+from fastapi import Body, FastAPI, HTTPException, status
+from pydantic import BaseModel
 
 BOOKS = [
     {"title": "Title One", "author": "Author One", "category": "science"},
@@ -98,3 +97,30 @@ async def read_author_by_query_v2(book_author: str, category: str):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No encontrado")
 
     return books_to_return
+
+
+@app.post("/books/create_book/v1")
+async def create_book(new_book=Body()):
+    BOOKS.append(new_book)
+
+    return BOOKS
+
+
+class Book(BaseModel):
+    title: str
+    author: str
+    category: str
+
+
+@app.post("/books/create_book/v2")
+async def create_book_v2(new_book: Book):
+    BOOKS.append(new_book)
+
+    return new_book
+
+
+@app.post("/books/create_book/v3")
+async def create_book_v3(new_book: Book = Body(..., embed=True)):
+    BOOKS.append(new_book)
+
+    return new_book
