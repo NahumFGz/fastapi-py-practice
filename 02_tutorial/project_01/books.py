@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, status
 
 BOOKS = [
     {"title": "Title One", "author": "Author One", "category": "science"},
@@ -17,12 +17,13 @@ async def read_all_books():
     return {"data": BOOKS}
 
 
+#! A. buscar por dynamic params
 @app.get("/books/v1/{book_title}")
 async def read_book(book_title: str):
     book_name = ""
 
     for book in BOOKS:
-        if book.get("title").casefold() == book_title.casefold():
+        if book.get("title", "").casefold() == book_title.casefold():
             book_name = book
             break
     if book_name != "":
@@ -45,3 +46,24 @@ async def read_book_v2(book_title: str):
 
     # Si no se encontró el libro, lanzamos una excepción HTTP 404 con un mensaje personalizado
     raise HTTPException(status_code=404, detail="Libro no encontrado")
+
+
+#! B. buscar por query params
+@app.get("/books/by-author/v1")
+async def read_books_by_author(author: str):
+    books_to_return = []
+    for book in BOOKS:
+        if book.get("author", "").casefold() == author.casefold():
+            books_to_return.append(book)
+
+    return books_to_return
+
+
+@app.get("/books/by-author/v2")
+async def read_books_by_author_v2(author: str):
+    books = [book for book in BOOKS if book.get("author", "").casefold() == author.casefold()]
+
+    if len(books) == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Autor no encontrado")
+
+    return books
