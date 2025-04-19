@@ -1,3 +1,5 @@
+from operator import le
+
 from fastapi import FastAPI, HTTPException, status
 
 BOOKS = [
@@ -67,3 +69,32 @@ async def read_books_by_author_v2(author: str):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Autor no encontrado")
 
     return books
+
+
+#! C. Buscar por dynamic_param y query param
+@app.get("/books/{book_author}/v1")
+async def read_author_category_by_query(book_author: str, category: str):
+    books_to_return = []
+    for book in BOOKS:
+        if (
+            book.get("author", "").casefold() == book_author.casefold()
+            and book.get("category", "").casefold() == category.casefold()
+        ):
+            books_to_return.append(book)
+
+    return books_to_return
+
+
+@app.get("/books/{book_author}/v2")
+async def read_author_by_query_v2(book_author: str, category: str):
+    books_to_return = [
+        book
+        for book in BOOKS
+        if book.get("author", "").casefold() == book_author.casefold()
+        and book.get("category", "").casefold() == category.casefold()
+    ]
+
+    if len(books_to_return) == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No encontrado")
+
+    return books_to_return
