@@ -124,3 +124,36 @@ async def create_book_v3(new_book: Book = Body(..., embed=True)):
     BOOKS.append(new_book)
 
     return new_book
+
+
+@app.put("/books/update_book/v1")
+async def update_book(update_book=Body()):
+
+    j = 0
+    for i in range(len(BOOKS)):
+        if BOOKS[i].get("title", "").casefold() == update_book.get("title", "").casefold():
+            BOOKS[i] = update_book
+            j = i
+            break
+
+    return BOOKS[j]
+
+
+@app.put("/books/update_book/v2")
+async def update_book_v2(update_book: Book):
+    for index, book in enumerate(BOOKS):
+        if book.get("title", "").casefold() == update_book.title.casefold():
+            BOOKS[index] = update_book.model_dump()
+            return {"message": "libro actualizado correctamente"}
+
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="no encontrado")
+
+
+@app.delete("/books/delete_book/{book_title}")
+async def delete_book(book_title: str):
+    for i in range(len(BOOKS)):
+        if BOOKS[i].get("title").casefold() == book_title.casefold():
+            BOOKS.pop(i)
+            break
+
+    return BOOKS
