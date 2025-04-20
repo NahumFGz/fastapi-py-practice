@@ -26,3 +26,7 @@
 
 - Instalar herramienta de migraciones
   pip install alembic
+
+- Instalar cifrado
+  pip install passlib
+  pip install bcrypt==4.0.1
