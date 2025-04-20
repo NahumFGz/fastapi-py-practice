@@ -4,11 +4,15 @@ import models
 from database import SessionLocal, engine
 from fastapi import Depends, FastAPI, HTTPException, Path, status
 from pydantic import BaseModel, Field
+from routers import auth
 from sqlalchemy.orm import Session
 
 app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
+
+
+app.include_router(auth.router)
 
 
 def get_db():
