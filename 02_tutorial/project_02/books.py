@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import FastAPI, status
+from fastapi import FastAPI, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
 app = FastAPI()
@@ -41,19 +41,39 @@ class BookRequest(BaseModel):
     rating: int = Field(gt=0, lt=6)
     published_date: int = Field(gt=1999, lt=2031)
 
-    model_config = {
-        "json_schema_extra": {
-            "example": {
-                "title": "A new book",
-                "author": "codingwithroby",
-                "description": "A new description of a book",
-                "rating": 5,
-                "published_date": 2029,
-            }
-        }
-    }
+    # model_config = {
+    #     "json_schema_extra": {
+    #         "example": {
+    #             "title": "A new book",
+    #             "author": "codingwithroby",
+    #             "description": "A new description of a book",
+    #             "rating": 5,
+    #             "published_date": 2029,
+    #         }
+    #     }
+    # }
 
 
-@app.get("/books", status_code=status.HTTP_200_OK)
+@app.get("/books/", status_code=status.HTTP_200_OK)
 async def read_all_books():
     return BOOKS
+
+
+@app.get("/books/", status_code=status.HTTP_200_OK)
+async def read_book_by_rating(book_rating: int = Query(gt=0, lt=6)):
+    books_to_return = []
+    for book in BOOKS:
+        if book.rating == book_rating:
+            books_to_return.append(book)
+
+    return books_to_return
+
+
+@app.get("/books/publish/", status_code=status.HTTP_200_OK)
+async def read_books_by_publish_date(published_date: int = Query(gt=1999, lt=2031)):
+    books_to_return = []
+    for book in BOOKS:
+        if book.published_date == published_date:
+            books_to_return.append(book)
+
+    return books_to_return
