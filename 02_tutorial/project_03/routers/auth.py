@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 
-router = APIRouter()
+router = APIRouter(tags=["Auth"])
 
 
-@router.get("/auth/")
+@router.get("/")
 async def get_user():
     return {"user": "authenticated"}

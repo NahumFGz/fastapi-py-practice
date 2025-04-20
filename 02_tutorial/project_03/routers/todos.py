@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-router = APIRouter()
+router = APIRouter(tags=["Todos"])
 
 
 def get_db():
@@ -32,7 +32,7 @@ async def read_all(db: Annotated[Session, Depends(get_db)]):
     return db.query(models.Todos).all()
 
 
-@router.get("/todo/{todo_id}")
+@router.get("/{todo_id}")
 async def read_todo(db: db_dependency, todo_id: Annotated[int, Path(gt=0)]):
     todo_model = db.query(models.Todos).filter(models.Todos.id == todo_id).first()
 
@@ -42,7 +42,7 @@ async def read_todo(db: db_dependency, todo_id: Annotated[int, Path(gt=0)]):
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No se encontro la tarea")
 
 
-@router.post("/todo", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 async def create_todo(db: db_dependency, todo_request: TodoRequest):
     todo_model = models.Todos(**todo_request.model_dump())
 
@@ -52,7 +52,7 @@ async def create_todo(db: db_dependency, todo_request: TodoRequest):
     return {"message": "Tarea creada correctamente"}
 
 
-@router.put("/todo/{todo_id}", status_code=status.HTTP_200_OK)
+@router.put("/{todo_id}", status_code=status.HTTP_200_OK)
 async def update_todo(
     db: db_dependency, todo_id: Annotated[int, Path(gt=0)], todo_request: TodoRequest
 ):
@@ -71,7 +71,7 @@ async def update_todo(
     return {"message": "Actualización correcta"}
 
 
-@router.delete("/todo/{todo_id}")
+@router.delete("/{todo_id}")
 async def delete_todo(db: db_dependency, todo_id: Annotated[int, Path(gt=0)]):
     todo_model = db.query(models.Todos).filter(models.Todos.id == todo_id).first()
 
