@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-router = APIRouter(tags=["Todos"])
+router = APIRouter(tags=["Todo"])
 
 
 def get_db():
