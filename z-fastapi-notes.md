@@ -20,3 +20,9 @@
 
 - Para poder usar el cli + fastapi
   pip install "fastapi[standard]"
+
+- Instalar ORM
+  pip install SQLAlchemy
+
+- Instalar herramienta de migraciones
+  pip install alembic
