@@ -1,14 +1,21 @@
+from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
 from database import SessionLocal
 from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
+from jose import jwt
 from models import Users
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 router = APIRouter(tags=["Auth"])
+
+
+SECRET_KEY = "PALABRASUPERSECRETA"
+ALGORITHM = "HS256"
+
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -33,6 +40,7 @@ def get_db():
 db_dependency = Annotated[Session, Depends(get_db)]
 
 
+##################################
 def authenticate_user(username: str, password: str, db: Session) -> Users | bool:
     user: Users = db.query(Users).filter(Users.username == username).first()
     if not user:
@@ -41,7 +49,17 @@ def authenticate_user(username: str, password: str, db: Session) -> Users | bool
     if not bcrypt_context.verify(password, user.hashed_password):
         return False
 
-    return True
+    return user
+
+
+def create_access_token(username: str, user_id: int, expires_delta: timedelta):
+    encode = {"sub": username, "id": user_id}
+    expires = datetime.now(timezone.utc) + expires_delta
+    encode.update({"exp": expires})
+    return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+##################################
 
 
 @router.get("/")
@@ -101,6 +119,6 @@ async def login_for_access_token(
     user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
         return "Failed authentification"
-    return "Success authentification"
 
-    return form_data.username
+    token = create_access_token(user.username, user.id, timedelta(minutes=20))
+    return {"token": token}

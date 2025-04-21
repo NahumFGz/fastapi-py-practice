@@ -33,3 +33,9 @@
 
 - Instalar librería para manejar datos de tipo multipart/form-data
   pip install python-multipart
+
+- JWT
+  pip install "python-jose[cryptography]"
+
+- Generar caracteres random
+  openssl rand -hex 32
