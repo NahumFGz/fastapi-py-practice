@@ -1,9 +1,11 @@
+from gettext import dpgettext
 from typing import Annotated
 
 import models
 from database import SessionLocal
 from fastapi import APIRouter, Depends, HTTPException, Path, status
 from pydantic import BaseModel, Field
+from routers.auth import get_current_user
 from sqlalchemy.orm import Session
 
 router = APIRouter(tags=["Todo"])
@@ -18,6 +20,7 @@ def get_db():
 
 
 db_dependency = Annotated[Session, Depends(get_db)]
+user_dependency = Annotated[dict, Depends(get_current_user)]
 
 
 class TodoRequest(BaseModel):
@@ -28,14 +31,24 @@ class TodoRequest(BaseModel):
 
 
 @router.get("/")
-async def read_all(db: Annotated[Session, Depends(get_db)]):
-    return db.query(models.Todos).all()
+async def read_all(user: user_dependency, db: db_dependency):
+    if user is None:
+        raise HTTPException(status_code=401, detail="Authentication Failed")
+    return db.query(models.Todos).filter(models.Todos.owner_id == user.get("id")).all()
 
 
 @router.get("/{todo_id}")
-async def read_todo(db: db_dependency, todo_id: Annotated[int, Path(gt=0)]):
-    todo_model = db.query(models.Todos).filter(models.Todos.id == todo_id).first()
+async def read_todo(user: user_dependency, db: db_dependency, todo_id: Annotated[int, Path(gt=0)]):
 
+    if user is None:
+        raise HTTPException(status_code=401, detail="Authentication Failed")
+
+    todo_model = (
+        db.query(models.Todos)
+        .filter(models.Todos.id == todo_id)
+        .filter(models.Todos.owner_id == user.get("id"))
+        .first()
+    )
     if todo_model is not None:
         return todo_model
 
@@ -43,8 +56,11 @@ async def read_todo(db: db_dependency, todo_id: Annotated[int, Path(gt=0)]):
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-async def create_todo(db: db_dependency, todo_request: TodoRequest):
-    todo_model = models.Todos(**todo_request.model_dump())
+async def create_todo(user: user_dependency, db: db_dependency, todo_request: TodoRequest):
+    if user is None:
+        raise HTTPException(status_code=401, detail="Authentication Failed")
+
+    todo_model = models.Todos(**todo_request.model_dump(), owner_id=user.get("id"))
 
     db.add(todo_model)
     db.commit()
@@ -54,9 +70,21 @@ async def create_todo(db: db_dependency, todo_request: TodoRequest):
 
 @router.put("/{todo_id}", status_code=status.HTTP_200_OK)
 async def update_todo(
-    db: db_dependency, todo_id: Annotated[int, Path(gt=0)], todo_request: TodoRequest
+    user: user_dependency,
+    db: db_dependency,
+    todo_id: Annotated[int, Path(gt=0)],
+    todo_request: TodoRequest,
 ):
-    todo_model = db.query(models.Todos).filter(models.Todos.id == todo_id).first()
+
+    if user is None:
+        raise HTTPException(status_code=401, detail="Authentication Failed")
+
+    todo_model = (
+        db.query(models.Todos)
+        .filter(models.Todos.id == todo_id)
+        .filter(models.Todos.owner_id == user.get("id"))
+        .first()
+    )
     if todo_model is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Todo no encontrado")
 
@@ -72,8 +100,15 @@ async def update_todo(
 
 
 @router.delete("/{todo_id}")
-async def delete_todo(db: db_dependency, todo_id: Annotated[int, Path(gt=0)]):
-    todo_model = db.query(models.Todos).filter(models.Todos.id == todo_id).first()
+async def delete_todo(
+    user: user_dependency, db: db_dependency, todo_id: Annotated[int, Path(gt=0)]
+):
+    todo_model = (
+        db.query(models.Todos)
+        .filter(models.Todos.id == todo_id)
+        .filter(models.Todos.owner_id == user.get("id"))
+        .first()
+    )
 
     if todo_model is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Todo no encontrado")
