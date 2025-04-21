@@ -39,3 +39,14 @@
 
 - Generar caracteres random
   openssl rand -hex 32
+
+# Alembic -> Herramienta de migraciones
+
+- Instalación
+  pip install alembic
+
+- Comandos básicos
+  alembic init <folder_name> -> Inicializes a new, generic enviroment
+  alembic revision -m <message> -> Creates a new revision of the enviroment
+  alembic upgrade <revision#> -> Run or upgrade migration to out database
+  alembic downgrade -1 -> Run our downgrade migration to our database
