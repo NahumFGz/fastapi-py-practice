@@ -33,6 +33,17 @@ def get_db():
 db_dependency = Annotated[Session, Depends(get_db)]
 
 
+def authenticate_user(username: str, password: str, db: Session) -> Users | bool:
+    user: Users = db.query(Users).filter(Users.username == username).first()
+    if not user:
+        return False
+
+    if not bcrypt_context.verify(password, user.hashed_password):
+        return False
+
+    return True
+
+
 @router.get("/")
 async def get_user():
     return {"user": "authenticated"}
@@ -87,4 +98,9 @@ async def login_for_access_token(
     Returns:
     - Un token de acceso si las credenciales son válidas (aún no implementado en esta versión).
     """
+    user = authenticate_user(form_data.username, form_data.password, db)
+    if not user:
+        return "Failed authentification"
+    return "Success authentification"
+
     return form_data.username
