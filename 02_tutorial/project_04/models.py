@@ -14,6 +14,7 @@ class Users(Base):
     role = Column(String)
     phone_number = Column(String)
     new_column_one = Column(String)
+    new_column_two = Column(String)
 
 
 class Todos(Base):

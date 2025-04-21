@@ -50,3 +50,5 @@
   alembic revision -m <message> -> Creates a new revision of the enviroment
   alembic upgrade <revision#> -> Run or upgrade migration to out database
   alembic downgrade -1 -> Run our downgrade migration to our database
+  alembic revision --autogenerate -m <message>
+  alembic upgrade head
