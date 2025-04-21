@@ -29,6 +29,11 @@ class CreateUserRequest(BaseModel):
     role: str
 
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
 def get_db():
     db = SessionLocal()
     try:
@@ -89,7 +94,7 @@ async def create_user(db: db_dependency, create_user_request: CreateUserRequest)
     db.commit()
 
 
-@router.post("/token")
+@router.post("/token", response_model=Token)
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: db_dependency
 ):
@@ -121,4 +126,4 @@ async def login_for_access_token(
         return "Failed authentification"
 
     token = create_access_token(user.username, user.id, timedelta(minutes=20))
-    return {"token": token}
+    return {"access_token": token, "token_type": "bearer"}
