@@ -30,3 +30,6 @@
 - Instalar cifrado
   pip install passlib
   pip install bcrypt==4.0.1
+
+- Instalar librería para manejar datos de tipo multipart/form-data
+  pip install python-multipart
